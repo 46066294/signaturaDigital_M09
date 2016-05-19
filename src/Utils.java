@@ -91,6 +91,7 @@ public class Utils {
         MessageDigest md = MessageDigest.getInstance(algoritme);
         md.update(read(file));
         byte[] digest = md.digest();
+        System.out.println("...xifrat MD5 OK");
 
         return digest;
     }
@@ -99,15 +100,16 @@ public class Utils {
      * Encriptació RSA de dades enmagatzemades a un array de bytes
      *
      * @param array buffer de memoria a encriptar
-     * @param privateKey clau privada
+     * @param publicKey clau publica
      * @return Buffer encriptat segons algoritme RSA
      */
-    public static byte[] signar(byte[] array, PrivateKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    public static byte[] signar(byte[] array, PublicKey publicKey) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
         byte[]encryptDigestionat = null;
         Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, privateKey);
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         encryptDigestionat =  cipher.doFinal(array);
+        System.out.println("...encriptat RSA per clau publica OK");
 
         return encryptDigestionat;
     }
@@ -117,15 +119,16 @@ public class Utils {
      * mitjanzant la clau publica
      *
      * @param encrypted array a desencriptar
-     * @param publicKey clau publica
+     * @param privateKey clau privada
      * @return hash de buffer desencriptat
      */
-    public static byte[] decrypt(byte[] encrypted, PublicKey publicKey) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException {
+    public static byte[] decrypt(byte[] encrypted, PrivateKey privateKey) throws InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException {
 
         byte[]decryptDigestionat = null;
         Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.DECRYPT_MODE, publicKey);
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
         decryptDigestionat = cipher.doFinal(encrypted);
+        System.out.println("\n...desencriptat RSA per clau privada OK");
 
         return decryptDigestionat;
     }

@@ -8,6 +8,16 @@ import java.nio.ByteBuffer;
 import java.security.*;
 
 /**
+ * Un fitxer de text pla (missatge a transmetre) s'encripta mitjanzant
+ * MD5 i posteriorment amb RSA (usant una clau publica).
+ *
+ * Despres es desencripta el xifrat RSA (usant una clau privada) i es
+ * mostra el resum MD5 del fitxer desencriptat.
+ *
+ * Es comproben els hashcode del fitxer original sense xifrar amb el
+ * xifrat, i mostra un missatge de resultat
+ *
+ *
  * Created by Mat on 17/05/2016.
  */
 
@@ -25,6 +35,11 @@ public class Ejecutable {
             "C:\\Users\\Mat\\Desktop\\DAM2\\git\\M09_SERVEIS\\crypto\\private.txt";
     public static final String PUBLIC_KEY_FILE =
             "C:\\Users\\Mat\\Desktop\\DAM2\\git\\M09_SERVEIS\\crypto\\public.txt";
+
+    //testing files
+    public static final String testing1 = "C:\\Users\\Mat\\Desktop\\DAM2\\git\\M09_SERVEIS\\crypto\\testD.txt";
+    public static final String testing2 = "C:\\Users\\Mat\\Desktop\\DAM2\\git\\M09_SERVEIS\\crypto\\testE.txt";
+    public static final String testing3 = "C:\\Users\\Mat\\Desktop\\DAM2\\git\\M09_SERVEIS\\crypto\\testDecrypt.txt";
 
 
     public static void main(String[] args) throws IOException,NoSuchAlgorithmException,
@@ -52,21 +67,16 @@ public class Ejecutable {
         //Es resumeix l'arxiu original amb un xifrat MD5
         byte[] digestionat =  Utils.digestiona(fileOriginal,"MD5");
         //S'encripta a un buffer
-        byte[] encryptDigestionat = Utils.signar(digestionat, privateKey);
+        byte[] encryptDigestionat = Utils.signar(digestionat, publicKey);
 
-        System.out.println("Longitud del fitxer original: " + fileOriginal.length());
-        System.out.println("Longitud de la firma: " + encryptDigestionat.length);
+        System.out.println("\nLongitud del fitxer original: " + fileOriginal.length() + " bytes");
+        System.out.println("Longitud de la firma: " + encryptDigestionat.length + " bytes");
 
         //Es genera el fitxer encriptat
         //Utils.write(FITXER_SIGNAT, Utils.concatenateByteArrays(Utils.read(fileOriginal), encryptDigestionat));
         Utils.write(FITXER_SIGNAT, Utils.concatenateByteArrays(digestionat, encryptDigestionat));
 
 
-        System.out.println("OUT digestionat\n" + digestionat);
-        System.out.println("OUT encryptDigestionat\n" + encryptDigestionat);
-        String testing1 = "C:\\Users\\Mat\\Desktop\\DAM2\\git\\M09_SERVEIS\\crypto\\testD.txt";
-        String testing2 = "C:\\Users\\Mat\\Desktop\\DAM2\\git\\M09_SERVEIS\\crypto\\testE.txt";
-        String testing3 = "C:\\Users\\Mat\\Desktop\\DAM2\\git\\M09_SERVEIS\\crypto\\testDecrypt.txt";
         Utils.write(testing1, digestionat);
         Utils.write(testing2, encryptDigestionat);
 
@@ -75,21 +85,24 @@ public class Ejecutable {
 
         //---------COMPARACIÓ DE HASHCODE---------//
 
-        byte[] desencriptado = Utils.decrypt(encryptDigestionat, publicKey);
+        byte[] desencriptado = Utils.decrypt(encryptDigestionat, privateKey);
         Utils.write(testing3, desencriptado);
-        String str = new String(desencriptado,"UTF-8");
-        System.out.println(str.hashCode());
-        //str = md5(desencriptado);
 
 
 
         // Hash del fitxer original y del firmat
         String hashDeFitxerOriginalDigestionat = new String(digestionat,"UTF-8");
         String hashEncryptDigestionat = new String(desencriptado, "UTF-8");
+        String hashDecryptDigestionat = new String(desencriptado,"UTF-8");
 
 
-        System.out.println("\n- HashCode del file original: " + hashDeFitxerOriginalDigestionat.hashCode()
-                + "\n- HashCode del file firmado: " + hashEncryptDigestionat.hashCode());
+        System.out.println("\n- HashCode del fitxer original: " + hashDeFitxerOriginalDigestionat.hashCode()
+                            + "\n- HashCode del fitxer firmat: " + hashEncryptDigestionat.hashCode()
+                            + "\n- HashCode del fitxer desencriptat: " + hashDecryptDigestionat.hashCode());
+
+        String md5Decrypt = md5(hashDecryptDigestionat.getBytes());
+
+        System.out.println("\tMD5 del fitxer desencriptat :: " + md5Decrypt);
 
         //Verificació
         if (hashDeFitxerOriginalDigestionat.equals(hashEncryptDigestionat)) {
@@ -113,10 +126,18 @@ public class Ejecutable {
     }
 
     public static String md5(byte[] input) throws NoSuchAlgorithmException {
+
+        final BigInteger number = new BigInteger(1, input);
+
+        return String.format("%032x", number);
+    }
+
+/*
+    public static String md5(byte[] input) throws NoSuchAlgorithmException {
         final MessageDigest md = MessageDigest.getInstance("MD5");
         final byte[] messageDigest = md.digest(input);
         final BigInteger number = new BigInteger(1, messageDigest);
 
         return String.format("%032x", number);
-    }
+    }*/
 }
